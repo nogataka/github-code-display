@@ -20,6 +20,7 @@ WORKDIR /app
 
 # 環境変数の設定
 ENV NODE_ENV=production
+ENV PORT=3000
 
 # 必要なファイルのコピー
 COPY --from=builder /app/package.json ./
@@ -29,6 +30,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 
-# アプリケーションの実行
+# 開始コマンドを明示的に指定
 EXPOSE 3000
 CMD ["npm", "start"]

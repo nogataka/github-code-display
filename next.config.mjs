@@ -1,8 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    // 出力をスタンドアロンモードに設定
+    // 出力モードをスタンドアロンに設定
     output: 'standalone',
+    // ホスト設定を追加
+    experimental: {
+      // ホスト設定を追加
+      outputStandalone: true,
+    },
     // API呼び出しの制限を緩和
     async headers() {
       return [
