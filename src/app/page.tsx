@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchRepositoryContents, fetchFileContent, organizeFileStructure, generateIndentedFileList } from '@/lib/githubAPI';
+import { fetchRepositoryContents, fetchFileContent, organizeFileStructure, generateIndentedFileList, isBinaryFile } from '@/lib/githubAPI';
 
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState('');
@@ -57,7 +57,7 @@ export default function Home() {
       // ファイル内容テキストを生成
       let fileContentsText = '';
       for (const [path, url] of rootContents.entries()) {
-        if (url) { // urlがnullでない場合（ディレクトリではない場合）
+        if (url && !isBinaryFile(path)) { // バイナリファイルのチェックを追加
           try {
             const content = await fetchFileContent(url);
             fileContentsText += `\n--------------------------------------------------------------------------------\n`;
@@ -76,6 +76,12 @@ export default function Home() {
           } catch (err) {
             console.error(`ファイル ${path} の内容取得に失敗しました:`, err);
           }
+        } else if (url && isBinaryFile(path)) {
+          // バイナリファイルの場合は内容を表示せず、ファイル名だけ表示
+          fileContentsText += `\n--------------------------------------------------------------------------------\n`;
+          fileContentsText += `/${path}:\n`;
+          fileContentsText += `--------------------------------------------------------------------------------\n`;
+          fileContentsText += `バイナリファイルのため表示をスキップします。\n\n`;
         }
       }
       
@@ -98,8 +104,8 @@ export default function Home() {
           whiteSpace: 'pre', 
           fontFamily: 'monospace', 
           margin: 0, 
-          paddingLeft: '10px', // 左側にスペースを追加
-          paddingTop: '10px'   // 上部にも少しスペースを追加
+          paddingLeft: '20px',
+          paddingTop: '10px'
         }}>{outputText}</pre>}
       </main>
     );
