@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
+    // 出力をスタンドアロンモードに設定
+    output: 'standalone',
     // API呼び出しの制限を緩和
     async headers() {
       return [
