@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { fetchRepositoryContents, fetchFileContent, organizeFileStructure, generateIndentedFileList, isBinaryFile, getDefaultBranch } from '@/lib/githubAPI';
+import CopyButton from '@/components/CopyButton';
 
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState('');
@@ -109,6 +110,7 @@ export default function Home() {
     }
   };
 
+  // シンプルビューの場合は装飾なし
   if (isSimpleView) {
     return (
       <main style={{ backgroundColor: 'white', margin: 0, padding: 0 }}>
@@ -159,7 +161,8 @@ export default function Home() {
       {outputText && (
         <div className="mt-8">
           <div className="bg-white p-4 rounded-md border border-gray-200 relative">
-            <pre id="textToCopy" className="overflow-auto whitespace-pre text-sm">
+            <CopyButton text={outputText} />
+            <pre id="textToCopy" className="overflow-auto whitespace-pre text-sm pr-16">
               {outputText}
             </pre>
           </div>

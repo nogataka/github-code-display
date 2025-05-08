@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ClipboardIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 
 interface CopyButtonProps {
   text: string;
@@ -26,10 +27,15 @@ const CopyButton: React.FC<CopyButtonProps> = ({ text }) => {
   return (
     <button 
       onClick={handleCopy} 
-      className="absolute top-2 right-2 px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm rounded"
+      className="absolute top-2 right-10 p-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors shadow-sm"
       aria-label="テキストをコピー"
+      title={copied ? 'コピーしました！' : 'コピー'}
     >
-      {copied ? 'コピーしました！' : 'コピー'}
+      {copied ? (
+        <ClipboardDocumentCheckIcon className="h-5 w-5 text-green-600" />
+      ) : (
+        <ClipboardIcon className="h-5 w-5" />
+      )}
     </button>
   );
 };
