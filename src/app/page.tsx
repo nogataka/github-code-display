@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchRepositoryContents, fetchFileContent, organizeFileStructure, generateIndentedFileList, isBinaryFile } from '@/lib/githubAPI';
+import { fetchRepositoryContents, fetchFileContent, organizeFileStructure, generateIndentedFileList, isBinaryFile, getDefaultBranch } from '@/lib/githubAPI';
 
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState('');
@@ -43,9 +43,16 @@ export default function Home() {
       
       const owner = pathSegments[0];
       const repo = pathSegments[1];
+
+      // 環境変数からトークンを取得
+      const githubToken = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+      
+      // デフォルトブランチを取得
+      const defaultBranch = await getDefaultBranch(owner, repo, githubToken);
+      console.log(`Using branch: ${defaultBranch}`);
       
       // リポジトリの内容を再帰的に取得して処理
-      const rootContents = await fetchRepositoryContents(owner, repo);
+      const rootContents = await fetchRepositoryContents(owner, repo, githubToken, defaultBranch);
       if (!rootContents) {
         throw new Error('リポジトリの内容を取得できませんでした。');
       }
@@ -57,9 +64,9 @@ export default function Home() {
       // ファイル内容テキストを生成
       let fileContentsText = '';
       for (const [path, url] of rootContents.entries()) {
-        if (url && !isBinaryFile(path)) { // バイナリファイルのチェックを追加
+        if (url && !isBinaryFile(path)) {
           try {
-            const content = await fetchFileContent(url);
+            const content = await fetchFileContent(url, githubToken);
             fileContentsText += `\n--------------------------------------------------------------------------------\n`;
             fileContentsText += `/${path}:\n`;
             fileContentsText += `--------------------------------------------------------------------------------\n`;
@@ -75,6 +82,13 @@ export default function Home() {
             fileContentsText += '\n';
           } catch (err) {
             console.error(`ファイル ${path} の内容取得に失敗しました:`, err);
+            // エラーの詳細情報を表示する
+            fileContentsText += `\n--------------------------------------------------------------------------------\n`;
+            fileContentsText += `/${path}:\n`;
+            fileContentsText += `--------------------------------------------------------------------------------\n`;
+            fileContentsText += `エラー: ${(err as any).message || 'Unknown error'}\n`;
+            fileContentsText += `URL: ${url}\n`;
+            fileContentsText += `Token使用: ${githubToken ? 'あり' : 'なし'}\n\n`;
           }
         } else if (url && isBinaryFile(path)) {
           // バイナリファイルの場合は内容を表示せず、ファイル名だけ表示
@@ -116,7 +130,7 @@ export default function Home() {
       <h1 className="text-3xl font-bold mb-6">GitHub コード表示ツール</h1>
       
       <form onSubmit={handleSubmit} className="mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <input
             type="text"
             value={repoUrl}
@@ -125,14 +139,15 @@ export default function Home() {
             className="flex-grow p-2 border rounded"
             disabled={isLoading}
           />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-blue-400"
-            disabled={isLoading || !repoUrl.trim()}
-          >
-            {isLoading ? '処理中...' : '解析'}
-          </button>
         </div>
+        
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-blue-400"
+          disabled={isLoading || !repoUrl.trim()}
+        >
+          {isLoading ? '処理中...' : '解析'}
+        </button>
       </form>
       
       {error && (
